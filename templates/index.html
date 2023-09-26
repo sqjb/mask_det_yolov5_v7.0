@@ -1,0 +1,61 @@
+<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Case test</title>
+</head>
+<script>
+    window.onload = function(){
+        var source = new EventSource("/event");
+        var cnt = 0
+        source.onmessage = function(e){
+            var data = JSON.parse(e.data)
+            console.log(data.alarm, data.image_base64)
+            var main = document.getElementById("main")
+            main.src = data.image_base64
+            if(cnt<6) {
+                var chd = document.getElementById("e" + cnt)
+                chd.src = data.image_base64
+                cnt ++
+            } else {
+                var sub = document.getElementById("sub")
+                var len = sub.children.length
+                for(var i=0;i<len-1;i++) {
+                    var chd = sub.children[i].children[0]
+                    var chd1 = sub.children[i+1].children[0]
+                    chd.src = chd1.src
+                }
+                sub.children[len-1].children[0].src = data.image_base64
+            }
+        };
+    }
+</script>
+<style type="text/css">
+img{
+
+    background-repeat:no-repeat;
+    background-position: center;
+    background-image:url("data:image/jpeg;base64,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")
+}
+ul{
+    text-align:center;
+}
+ul>li {
+    display:inline-block;
+}
+</style>
+<body>
+    <div style="text-align: center;">
+        <h1>口罩佩戴检测</h1>
+        <img id="main"  width="800" height="600" />
+        <ul id="sub">
+            <li><img id="e0" width="200" height="140" /></li>
+            <li><img id="e1" width="200" height="140" /></li>
+            <li><img id="e2" width="200" height="140" /></li>
+            <li><img id="e3" width="200" height="140" /></li>
+            <li><img id="e4" width="200" height="140" /></li>
+            <li><img id="e5" width="200" height="140" /></li>
+        </ul>
+    </div>
+</body>
+</html>

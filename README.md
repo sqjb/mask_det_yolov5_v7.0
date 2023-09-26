@@ -1,2 +1,7 @@
-# mask_det_yolov5_v7.0
-mask detection with yolov5 and flask
+# 安装与运行
+```
+$ cd yolov5
+$ pip install -r requirements.txt
+$ pip install Flask
+$ python main.py
+```
