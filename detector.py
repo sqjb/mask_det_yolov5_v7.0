@@ -5,7 +5,7 @@ import numpy as np
 from yolov5.utils.torch_utils import select_device
 from yolov5.models.experimental import attempt_load
 from yolov5.utils.augmentations import letterbox
-from yolov5.utils.general import non_max_suppression, scale_boxes
+from yolov5.utils.general import non_max_suppression, scale_boxes, Profile, LOGGER
 from yolov5.utils.plots import colors
 from yolov5.models.common import DetectMultiBackend
 
@@ -48,24 +48,28 @@ class Detector(object):
         self.model.warmup(imgsz=(1 if self.pt or self.model.triton else self.batch_size, 3, *self.imgsz))
 
     def detect(self, image):
+        dt = (Profile(), Profile(), Profile())
         # precess
-        img0 = image.copy()
-        img = letterbox(img0, self.imgsz, stride=self.stride)[0]
-        img = img.transpose((2, 0, 1))[::-1]
-        img = np.ascontiguousarray(img)
-        img = torch.from_numpy(img).to(self.model.device)
-        img = img.half() if self.model.fp16 else img.float()
-        img /= 255.0
-        if len(img.shape) == 3:
-            img = img[None]
+        with dt[0]:
+            img0 = image.copy()
+            img = letterbox(img0, self.imgsz, stride=self.stride)[0]
+            img = img.transpose((2, 0, 1))[::-1]
+            img = np.ascontiguousarray(img)
+            img = torch.from_numpy(img).to(self.model.device)
+            img = img.half() if self.model.fp16 else img.float()
+            img /= 255.0
+            if len(img.shape) == 3:
+                img = img[None]
         # run
-        pred = self.model(img, augment=self.augment)[0]
-        pred = non_max_suppression(pred,
-                                   self.conf_thres,
-                                   self.iou_thres,
-                                   self.classes,
-                                   self.agnostic_nms,
-                                   max_det=self.max_det)
+        with dt[1]:
+            pred = self.model(img, augment=self.augment)[0]
+        with dt[2]:
+            pred = non_max_suppression(pred,
+                                       self.conf_thres,
+                                       self.iou_thres,
+                                       self.classes,
+                                       self.agnostic_nms,
+                                       max_det=self.max_det)
         alarm = False
         for i, det in enumerate(pred):
             if det is not None and len(det):
@@ -80,4 +84,5 @@ class Detector(object):
                                  line_thickness=self.line_thickness)
                     if c == 0:
                         alarm = True
+        LOGGER.info(f"infer:{dt[1].dt * 1E3:.1f}ms nms:{dt[2].dt * 1E3:.1f}ms")
         return alarm, image
