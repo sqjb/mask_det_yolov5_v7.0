@@ -50,7 +50,7 @@ def worker_read_video():
                 print("que is full, clear it..")
                 Q1.get()
             Q1.put_nowait(frame)
-        time.sleep(0.5)
+        time.sleep(0.04)
 
 
 def worker_detect():
