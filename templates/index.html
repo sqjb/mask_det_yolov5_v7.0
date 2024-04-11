@@ -10,9 +10,10 @@
         var cnt = 0
         source.onmessage = function(e){
             var data = JSON.parse(e.data)
-            console.log(data.alarm, data.image_base64)
+            //console.log(data.alarm, data.image_base64)
             var main = document.getElementById("main")
             main.src = data.image_base64
+            if(data.alarm == false) return 
             if(cnt<6) {
                 var chd = document.getElementById("e" + cnt)
                 chd.src = data.image_base64

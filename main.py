@@ -2,6 +2,7 @@ import base64
 import json
 import time
 
+import yolov5.detect as ys
 import cv2
 import flask
 from flask import Flask
@@ -41,26 +42,34 @@ def event_proc():
 
 def worker_read_video():
     cap = cv2.VideoCapture("./mask_test.mp4")
-    while True:
+    while cap.isOpened():
         ret, frame = cap.read()
         if ret:
             if Q1.full():
-                print("que is full, clear it..")
+                # print("que is full, clear it..")
                 Q1.get()
             Q1.put_nowait(frame)
-        time.sleep(0.5)
+        else:
+            break
+        time.sleep(0.04)
+    print("worker_read_video quit normally")
+    cap.release()
 
 
 def worker_detect():
     d = Detector("best.pt")
     while True:
-        frame = Q1.get(block=True)
-        if frame is not None:
-            alarm, image = d.detect(frame)
-            if image is not None:
-                if Q2.full():
-                    Q2.get()
-                Q2.put_nowait((alarm, image))
+        try:
+            frame = Q1.get(block=True)
+            if frame is not None:
+                alarm, image = d.detect(frame)
+                if image is not None:
+                    if Q2.full():
+                        Q2.get()
+                    Q2.put_nowait((alarm, image))
+        except queue.Empty:
+            break
+    print("worker_detect quit normally")
 
 
 def worker_flask():
@@ -79,9 +88,4 @@ if __name__ == '__main__':
     ths = [threading.Thread(target=worker_read_video),
            threading.Thread(target=worker_detect),
            threading.Thread(target=worker_flask)]
-           # threading.Thread(target=worker_imshow)]
-
-    for t in ths:
-        t.start()
-    for t in ths:
-        t.join()
+    [t.start() for t in ths]

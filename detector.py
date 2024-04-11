@@ -88,5 +88,5 @@ class Detector(object):
                                  line_thickness=self.line_thickness)
                     if c == 0:
                         alarm = True
-        LOGGER.info(f"infer:{dt[1].dt * 1E3:.1f}ms nms:{dt[2].dt * 1E3:.1f}ms")
+        #LOGGER.info(f"infer:{dt[1].dt * 1E3:.1f}ms nms:{dt[2].dt * 1E3:.1f}ms")
         return alarm, image
