@@ -1,6 +1,10 @@
+import sys
+
 import cv2
 import torch.cuda
 import numpy as np
+
+sys.path.append("./yolov5")
 
 from yolov5.utils.torch_utils import select_device
 from yolov5.models.experimental import attempt_load

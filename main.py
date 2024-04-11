@@ -1,11 +1,9 @@
 import base64
 import json
-import sys
 import time
 
 import cv2
 import flask
-import yolov5.detect as yolov5
 from flask import Flask
 from detector import Detector
 import threading
